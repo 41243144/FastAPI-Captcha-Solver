@@ -1,5 +1,5 @@
 import base64
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import ddddocr
 
@@ -16,7 +16,7 @@ app.add_middleware(
 )
 
 @app.post("/predict")
-async def predict_captcha(file: UploadFile = File(None), base64_image: str = None):
+async def predict_captcha(file: UploadFile = File(None), base64_image: str = Form(None)):
     try:
         if file:
             print("接收到檔案類型的圖片")
