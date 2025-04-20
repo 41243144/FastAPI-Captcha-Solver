@@ -1,5 +1,5 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi import FastAPI
+import base64
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import ddddocr
 
@@ -16,9 +16,18 @@ app.add_middleware(
 )
 
 @app.post("/predict")
-async def predict_captcha(file: UploadFile = File(...)):
+async def predict_captcha(file: UploadFile = File(None), base64_image: str = None):
     try:
-        contents = await file.read()
+        if file:
+            contents = await file.read()
+        elif base64_image:
+            try:
+                contents = base64.b64decode(base64_image)
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid Base64 image")
+        else:
+            raise HTTPException(status_code=400, detail="No file or Base64 image provided")
+
         result = ocr.classification(contents)
         return {"result": result}
     except Exception as e:
