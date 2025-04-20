@@ -19,16 +19,27 @@ app.add_middleware(
 async def predict_captcha(file: UploadFile = File(None), base64_image: str = None):
     try:
         if file:
+            print("接收到檔案類型的圖片")
             contents = await file.read()
         elif base64_image:
+            print("接收到 Base64 類型的圖片")
             try:
                 contents = base64.b64decode(base64_image)
-            except Exception:
-                raise HTTPException(status_code=400, detail="Invalid Base64 image")
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid Base64 image: {str(e)}")
         else:
             raise HTTPException(status_code=400, detail="No file or Base64 image provided")
 
-        result = ocr.classification(contents)
-        return {"result": result}
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty image data")
+
+        try:
+            result = ocr.classification(contents)
+            return {"result": result}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"OCR processing failed: {str(e)}")
+
+    except HTTPException as http_err:
+        return {"error": http_err.detail}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Unexpected error: {str(e)}"}
