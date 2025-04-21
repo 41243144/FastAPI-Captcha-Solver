@@ -15,6 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"message": "the server is running"}
+
 @app.post("/predict")
 async def predict_captcha(file: UploadFile = File(None), base64_image: str = Form(None)):
     try:
